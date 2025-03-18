@@ -32,5 +32,13 @@ class Patient(Base):
     age = Column(Integer, )
     phoneNumber = Column(String)
 
+class Appointment(Base):
+    __tablename__ = "appointments"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    age = Column(Integer, )
+    phoneNumber = Column(String)
+    reason = Column(String)
+
 
 SessionLocal = sessionmaker(autoflush=False, bind=engine)

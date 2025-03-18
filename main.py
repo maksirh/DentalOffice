@@ -90,12 +90,13 @@ def delete_person(id, db: Session = Depends(get_db)):
 @app.get("/dentalreg")
 def dental_reg():
     return FileResponse(Path("public") / "dentistReg.html")
+##################################################################################################################
 
 @app.get("/patientreg")
 def dental_reg():
     return FileResponse(Path("public") / "patientReg.html")
 
-##################################################################################################################
+
 
 @app.get("/api/patients")
 def get_patients(db: Session = Depends(get_db)):
@@ -147,3 +148,61 @@ def delete_patient(id: int, db: Session = Depends(get_db)):
     db.delete(patient)
     db.commit()
     return patient
+
+##################################################################################################################
+
+@app.get("/appointment")
+def make_appointment():
+    return FileResponse(Path("public") / "appointment.html")
+
+@app.get("/api/appointments")
+def get_appointments(db: Session = Depends(get_db)):
+    return db.query(Appointment).all()
+
+
+@app.get("/api/appointments/{id}")
+def get_appointment(id: int, db: Session = Depends(get_db)):
+    patient = db.query(Appointment).filter(Appointment.id == id).first()
+    if not patient:
+        return JSONResponse(status_code=404, content={"message": "Запис не знайдено"})
+    return patient
+
+
+@app.post("/api/appointments")
+def create_appointment(data=Body(), db: Session = Depends(get_db)):
+    appointment = Appointment(
+        name=data["name"],
+        age=data["age"],
+        phoneNumber=data["phoneNumber"],
+        reason = data["reason"]
+    )
+    db.add(appointment)
+    db.commit()
+    db.refresh(appointment)
+    return appointment
+
+
+@app.put("/api/appointments")
+def update_appointment(data=Body(), db: Session = Depends(get_db)):
+    appointment = db.query(Appointment).filter(Appointment.id == data["id"]).first()
+    if not appointment:
+        return JSONResponse(status_code=404, content={"message": "Запис не знайдено"})
+
+    appointment.name = data["name"]
+    appointment.age = data["age"]
+    appointment.phoneNumber = data["phone"]
+
+    db.commit()
+    db.refresh(appointment)
+    return appointment
+
+
+@app.delete("/api/appointments/{id}")
+def delete_appointment(id: int, db: Session = Depends(get_db)):
+    appointment = db.query(Appointment).filter(Appointment.id == id).first()
+    if not appointment:
+        return JSONResponse(status_code=404, content={"message": "Запис не знайдено"})
+
+    db.delete(appointment)
+    db.commit()
+    return appointment
