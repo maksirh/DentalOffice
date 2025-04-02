@@ -7,17 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/public/styles/style.css">
-    <style>
-        td {
-            padding: 5px;
-        }
-        button {
-            margin: 5px;
-        }
-    </style>
 </head>
 <body>
-
     <header>
         <nav class="navbar navbar-expand-lg bg-dark">
             <div class="container-fluid">
@@ -31,17 +22,18 @@
                     <a class="nav-link active" aria-current="page" href="/">Home</a>
                   </li>
                   <li class="nav-item">
-                  <a class="nav-link" href="/appointment">Make an appointment</a>
+                    <a class="nav-link" href="/appointment">Make an appointment</a>
+                  </li>
+
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                  <li class="nav-item">
+                    <a class="nav-link" href="/login" id="login">Log in</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="register" href="/register">Register</a>
                   </li>
                 </ul>
-                  <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link" href="/login" >Log in</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/register">Register</a>
-              </li>
-            </ul>
                 <form class="d-flex" role="search">
                   <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
                   <button class="btn btn-outline-success" type="submit">Search</button>
@@ -51,42 +43,15 @@
           </nav>
       </header>
 
-    <section class="sec">
-
-      <h2>Patient registation</h2>
-      <div>
-          <input type="hidden" id="patientId" />
-          <p>
-              Ім'я:<br />
-              <input id="patientName" />
-              
-          </p>
-          <p>
-              Вік:<br />
-              <input id="patientAge" type="number" />
-          </p>
-          <p>
-              Номер телфону: <br>
-              <input id="patientPhone" />
-          </p>
-          <p>
-              <button id="savePat">Зберегти</button>
-          </p>
-      </div>
-      <table>
-          <thead>
-              <tr>
-                  <th>Ім'я</th>
-                  <th>Вік</th>
-                  <th>Номер телефону</th>
-                  <th></th>
-              </tr>
-          </thead>
-          <tbody>
-          </tbody>
-      </table>
-    </section>
-
-    <script src="/public/js/patient.js"></script>
+      <section>
+        <div class = "login-window">
+            Name: <input type="text" id="userName">
+            <br>
+            Password: <input type="text" id="userPassword">
+          <br>
+            <button type="button" id="authUser">Log in</button>
+        </div>
+      </section>
+        <script src="/public/js/login.js" defer></script>
 </body>
 </html>

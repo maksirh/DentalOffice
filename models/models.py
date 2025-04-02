@@ -1,21 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String
-from fastapi import FastAPI
+from models.database import Base
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread":False})
-
-Base = declarative_base()
-
-class Person(Base):
-    __tablename__ = "people"
+class User(Base):
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    age = Column(Integer,)
-    experience = Column(Integer, )
-    phoneNumber = Column(String)
+    username = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)
+
 
 class Dentist(Base):
     __tablename__ = "dentists"
@@ -39,6 +30,3 @@ class Appointment(Base):
     age = Column(Integer, )
     phoneNumber = Column(String)
     reason = Column(String)
-
-
-SessionLocal = sessionmaker(autoflush=False, bind=engine)
