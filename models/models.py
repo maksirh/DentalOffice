@@ -6,6 +6,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
+    role = Column(String, default="user")
 
 
 class Dentist(Base):

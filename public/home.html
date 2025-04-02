@@ -44,18 +44,13 @@
   </header>
 
   <div class = "main-buttons">
+    <div id="admin-buttons" style="display: none;">
     <button type="button" id="dentistRegPage" class="btn btn-primary btn-lg">Зареєструвати дантиста</button>
+      <br>
     <button type="button" id="patientRegPage" class="btn btn-primary btn-lg">Зареєструвати паціента</button>
   </div>
+    </div>
 
-  <script>
-    document.getElementById("dentistRegPage").addEventListener("click", function() {
-    window.location.href = "dentalreg";
-  });
-
-  document.getElementById("patientRegPage").addEventListener("click", function() {
-    window.location.href = "patientreg";
-  });
-  </script>
+  <script src="/public/js/home.js" defer></script>
 </body>
 </html>

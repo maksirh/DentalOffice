@@ -13,11 +13,9 @@ async function authUser(userName, userPassword) {
 
     if (response.ok) {
         const data = await response.json();
-        // Тут можна обробити результат успішного входу
         alert("Вхід успішний: " + data.message);
         console.log(data.user);
     } else {
-        // Обробка помилки, якщо логін не вдалося виконати
         const errorData = await response.json();
         alert("Помилка: " + errorData.detail);
     }

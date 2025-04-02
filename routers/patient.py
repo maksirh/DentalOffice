@@ -40,7 +40,7 @@ def update_patient(data=Body(), db: Session = Depends(get_db)):
 
     patient.name = data["name"]
     patient.age = data["age"]
-    patient.phoneNumber = data["phone"]
+    patient.phoneNumber = data["phoneNumber"]
 
     db.commit()
     db.refresh(patient)

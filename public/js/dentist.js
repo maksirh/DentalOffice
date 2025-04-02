@@ -1,21 +1,16 @@
- // Отримання всіх користувачів
- async function getDentists() {
-    // надсилає запит і отримуємо відповідь
+async function getDentists() {
     const response = await fetch("/api/dentists", {
         method: "GET",
         headers: { "Accept": "application/json" }
     });
-    // якщо запит пройшов нормально
+
     if (response.ok === true) {
-        // отримуємо дані
         const dentists = await response.json();
         const rows = document.querySelector("tbody");
-        // додаємо отримані елементи в таблицю
         dentists.forEach(dentist => rows.append(row(dentist)));
     }
 }
 
-// Отримання одного користувача
 async function getDentist(id) {
     const response = await fetch(`/api/dentists/${id}`, {
         method: "GET",
@@ -38,7 +33,7 @@ async function getDentist(id) {
 }
 // Додавання користувача
 async function createDentist(dentistName, dentistAge, dentistExp, dentistPhone) {
-    const response = await fetch("api/dentists", {
+    const response = await fetch("/api/dentists", {
         method: "POST",
         headers: {
             "Accept": "application/json",

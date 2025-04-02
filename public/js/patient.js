@@ -62,7 +62,8 @@ async function editPatient(patientId, patientName, patientAge) {
         body: JSON.stringify({
             id: patientId,
             name: patientName,
-            age: parseInt(patientAge, 10)
+            age: parseInt(patientAge, 10),
+            phoneNumber: patientPhone
         })
     });
 

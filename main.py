@@ -1,13 +1,13 @@
-from models.models import *
 from models.database import *
-from sqlalchemy.orm import Session
-from fastapi import Depends, FastAPI, Body, HTTPException, Request
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 from routers import dentist, patient, appointment, user
+import auth
+from security import require_role
 
 
 Base.metadata.create_all(bind=engine)
@@ -16,6 +16,7 @@ app.include_router(dentist.router)
 app.include_router(patient.router)
 app.include_router(appointment.router)
 app.include_router(user.router)
+app.include_router(auth.router)
 app.mount("/public", StaticFiles(directory="public"), name="public")
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
 
@@ -33,10 +34,12 @@ def register():
     return FileResponse(Path("public") / "register.html")
 
 @app.get("/dentalreg")
+@require_role("admin")
 def dental_reg():
     return FileResponse(Path("public") / "dentistReg.html")
 
 @app.get("/patientreg")
+@require_role("admin")
 def dental_reg():
     return FileResponse(Path("public") / "patientReg.html")
 
