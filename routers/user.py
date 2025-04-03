@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 from models.database import get_db
 from fastapi import Depends,  Body
 from security import *
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -39,7 +41,7 @@ def login(request: Request, data=Body(), db: Session = Depends(get_db)):
     return JSONResponse({"message": "Вхід успішний!", "user": {"id": user.id, "username": user.username, "role": user.role}})
 
 
-@router.post("/logout/")
+@router.post("/logout")
 def logout(request: Request):
     request.session.clear()
     return JSONResponse({"message": "Вихід успішний!"})
@@ -64,3 +66,8 @@ def protected_route(user: User = Depends(get_current_user)):
 @router.get("/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {"id": current_user.id, "username": current_user.username, "role": current_user.role}
+
+
+@router.get("/profile")
+def register():
+    return FileResponse(Path("public") / "profile.html")

@@ -30,7 +30,7 @@ async function getDentist(id) {
         console.log(error.message);
     }
 }
-// Додавання користувача
+
 async function createDentist(dentistName, dentistAge, dentistExp, dentistPhone) {
     const response = await fetch("/api/dentists", {
         method: "POST",
