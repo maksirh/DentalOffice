@@ -52,7 +52,7 @@ async function createPatient(patientName, patientAge, patientPhone) {
     }
 }
 
-async function editPatient(patientId, patientName, patientAge) {
+async function editPatient(patientId, patientName, patientAge, patientPhone) {
     const response = await fetch("/api/patients", {
         method: "PUT",
         headers: {
@@ -138,7 +138,7 @@ document.getElementById("savePat").addEventListener("click", async () => {
     if (id === "")
         await createPatient(name, age, phoneNumber);
     else
-        await editPatient(id, name, age);
+        await editPatient(id, name, age, phoneNumber);
 
     reset();
 });

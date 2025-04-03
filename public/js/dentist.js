@@ -17,18 +17,17 @@ async function getDentist(id) {
         headers: { "Accept": "application/json" }
     });
     if (response.ok === true) {
-        const user = await response.json();
-        document.getElementById("userId").value = dentist.id;
-        document.getElementById("userName").value = dentist.name;
-        document.getElementById("userAge").value = dentist.age;
-        document.getElementById("userExp").value = dentist.exp;
-        document.getElementById("userPhone").value = dentist.phone;
+        const dentist = await response.json();
+        document.getElementById("dentistId").value = dentist.id;
+        document.getElementById("dentistName").value = dentist.name;
+        document.getElementById("dentistAge").value = dentist.age;
+        document.getElementById("dentistExp").value = dentist.experience;
+        document.getElementById("dentistPhone").value = dentist.phoneNumber;
 
     }
     else {
-        // якщо сталася помилка, отримуємо повідомлення про помилку
         const error = await response.json();
-        console.log(error.message); // і виводимо його на консоль
+        console.log(error.message);
     }
 }
 // Додавання користувача
@@ -56,9 +55,8 @@ async function createDentist(dentistName, dentistAge, dentistExp, dentistPhone) 
     }
 }
 
-// Зміна користувача
-async function editDentist(dentistId, dentistName, dentistAge) {
-    const response = await fetch("api/dentists", {
+async function editDentist(dentistId, dentistName, dentistAge, dentistExp, dentistPhone) {
+    const response = await fetch("/api/dentists", {
         method: "PUT",
         headers: {
             "Accept": "application/json", "Content-Type":
@@ -69,7 +67,9 @@ async function editDentist(dentistId, dentistName, dentistAge) {
         body: JSON.stringify({
             id: dentistId,
             name: dentistName,
-            age: parseInt(dentistAge, 10)
+            age: parseInt(dentistAge, 10),
+            experience: parseInt(dentistExp, 10),
+            phoneNumber: dentistPhone
         })
     });
     if (response.ok === true) {
@@ -98,13 +98,13 @@ async function deleteDentist(id) {
         console.log(error.message);
     }
 }
-// скидання даних форми після відправлення
+
 function reset() {
     document.getElementById("dentistId").value =
         document.getElementById("dentistName").value =
         document.getElementById("dentistAge").value = "";
 }
-// створення рядка для таблиці
+
 function row(dentist) {
     const tr = document.createElement("tr");
     tr.setAttribute("data-rowid", dentist.id);
@@ -154,10 +154,9 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     if (id === "")
         await createDentist(name, age, exp, phone);
     else
-        await editDentist(id, name, age);
+        await editDentist(id, name, age, exp, phone);
 
     reset();
 });
 
-// завантаження користувачів
 getDentists();

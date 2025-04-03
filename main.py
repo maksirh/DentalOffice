@@ -1,5 +1,5 @@
 from models.database import *
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -35,12 +35,12 @@ def register():
 
 @app.get("/dentalreg")
 @require_role("admin")
-def dental_reg():
+def dental_reg(request: Request):
     return FileResponse(Path("public") / "dentistReg.html")
 
 @app.get("/patientreg")
 @require_role("admin")
-def dental_reg():
+def patient_reg(request: Request):
     return FileResponse(Path("public") / "patientReg.html")
 
 @app.get("/appointment")
