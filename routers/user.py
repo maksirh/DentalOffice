@@ -71,3 +71,14 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 @router.get("/profile")
 def register():
     return FileResponse(Path("public") / "profile.html")
+
+
+@router.get("/{id}")
+def get_dentist(id: int, db: Session = Depends(get_db)):
+
+    user = db.query(User).filter(User.id == id).first()
+
+    if user==None:
+        return JSONResponse(status_code=404, content={ "message": "Користувач не знайдений"})
+
+    return user

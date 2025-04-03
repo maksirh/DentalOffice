@@ -141,9 +141,9 @@ function row(dentist) {
 }
 
 
-// скидання значень форми
+
 document.getElementById("resetBtn").addEventListener("click", () => reset());
-// надсилання форми
+
 document.getElementById("saveBtn").addEventListener("click", async () => {
     const id = document.getElementById("dentistId").value;
     const name = document.getElementById("dentistName").value;

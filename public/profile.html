@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/public/styles/style.css">
 </head>
 <body>
-      <header>
+  <header>
     <nav class="navbar navbar-expand-lg bg-dark">
         <div class="container-fluid">
           <a class="navbar-brand" href="/"> <img src="/public/images/logo.webp" alt="logo"></a>
@@ -53,18 +53,17 @@
       </nav>
   </header>
 
-      <section>
-        <div class = "register-window">
-            <input type="hidden" id="userId" />
-            Name: <input type="text" id="userName">
-            <br>
-            Password: <input type="text" id="userPassword">
-          <br>
-            <button type="button" id="saveUser">Register</button>
-        </div>
-      </section>
-    <script src="/public/js/register.js" defer></script>
-    <script src="/public/js/auth.js" defer></script>
-    <script src="/public/js/logout.js" defer></script>
+  <section>
+    <div>
+  <p>Username: <span id="profile-username"></span></p>
+  <p>Role: <span id="profile-role"></span></p>
+  <p>ID: <span id="profile-id"></span></p>
+   </div>
+  </section>
+
+  <script src="/public/js/login.js" defer></script>
+  <script src="/public/js/auth.js" defer></script>
+  <script src="/public/js/logout.js" defer></script>
+  <script src="/public/js/profile.js" defer></script>
 </body>
 </html>
