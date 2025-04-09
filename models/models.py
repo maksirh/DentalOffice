@@ -31,3 +31,8 @@ class Appointment(Base):
     age = Column(Integer, )
     phoneNumber = Column(String)
     reason = Column(String)
+
+class Review(Base):
+    __tablename__ = "reviews"
+    id = Column(Integer, primary_key=True, index=True)
+    review = Column(String)

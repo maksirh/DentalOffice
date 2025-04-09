@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
-from routers import dentist, patient, appointment, user
+from routers import dentist, patient, appointment, user, review
 import auth
 from security import require_role
 
@@ -17,6 +17,7 @@ app.include_router(patient.router)
 app.include_router(appointment.router)
 app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(review.router)
 app.mount("/public", StaticFiles(directory="public"), name="public")
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
 
@@ -47,6 +48,9 @@ def patient_reg(request: Request):
 def make_appointment():
     return FileResponse(Path("public") / "appointment.html")
 
+@app.get("/reviews")
+def review():
+    return FileResponse(Path("public") / "review.html")
 
 if __name__ == '__main__':
     uvicorn.run("main:app", reload=True)

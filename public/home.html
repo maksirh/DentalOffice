@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/public/styles/style.css">
 </head>
-<body>
+<body class="wrapper">
   <header>
     <nav class="navbar navbar-expand-lg bg-dark">
         <div class="container-fluid">
@@ -53,6 +53,7 @@
       </nav>
   </header>
 
+  <section>
   <div class = "main-buttons">
     <div id="admin-buttons" style="display: none;">
     <button type="button" id="dentistRegPage" class="btn btn-primary btn-lg">Зареєструвати дантиста</button>
@@ -60,6 +61,20 @@
     <button type="button" id="patientRegPage" class="btn btn-primary btn-lg">Зареєструвати паціента</button>
   </div>
     </div>
+  </section>
+
+  <footer class="footer">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 text-center">
+            <p>All right reserved</p></div>
+          <div class="col-lg-4 text-center">
+            <p>Contacts</p></div>
+          <div class="col-lg-4 text-center">
+            <a href="/reviews">Leave a review</a></div>
+        </div>
+      </div>
+    </footer>
 
   <script src="/public/js/home.js" defer></script>
   <script src="/public/js/auth.js" defer></script>
