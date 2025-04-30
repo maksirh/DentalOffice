@@ -11,7 +11,6 @@ from pathlib import Path
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
 
-
 @router.post("/register")
 def create_user(data=Body(), db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.username == data["name"]).first()
@@ -59,10 +58,6 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     return user
 
 
-@router.get("/protected/")
-def protected_route(user: User = Depends(get_current_user)):
-    return {"message": f"Привіт, {user.username}! Ви увійшли в систему."}
-
 @router.get("/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {"id": current_user.id, "username": current_user.username, "role": current_user.role}
@@ -74,7 +69,7 @@ def register():
 
 
 @router.get("/{id}")
-def get_dentist(id: int, db: Session = Depends(get_db)):
+def get_user(id: int, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.id == id).first()
 
