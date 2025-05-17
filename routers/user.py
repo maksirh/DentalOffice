@@ -1,79 +1,81 @@
-from models.models import *
-from sqlalchemy.orm import Session
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-from models.database import get_db
-from fastapi import Depends,  Body
-from security import *
-from fastapi.responses import FileResponse
-from pathlib import Path
+from fastapi import APIRouter, HTTPException, status, Request, Body, Depends
+from fastapi.responses import JSONResponse, FileResponse
+from mongodb import mongo_db
+from schemas.schemas import UserCreate, UserOut
+from security import hash_password, verify_password
+from bson import ObjectId
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
-
-@router.post("/register")
-def create_user(data=Body(), db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.username == data["name"]).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Користувач вже існує")
-    user = User(
-        username=data["name"],
-        password=hash_password(data["password"]),
-        role=data.get("role", "user")
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+async def register(user: UserCreate = Body(...)):
+    existing = await mongo_db.users.find_one({"username": user.username})
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists")
+    data = user.dict()
+    data["password"] = hash_password(data["password"])
+    result = await mongo_db.users.insert_one(data)
+    new_user = await mongo_db.users.find_one({"_id": result.inserted_id})
+    return UserOut(**new_user)
 
 @router.post("/login")
-def login(request: Request, data=Body(), db: Session = Depends(get_db)):
-
-    user = db.query(User).filter(User.username == data["username"]).first()
-    if not user or not verify_password(data["password"], user.password):
-        raise HTTPException(status_code=401, detail="Невірний логін або пароль")
-
-    request.session["user_id"] = user.id
-    request.session["role"] = user.role
-
-    return JSONResponse({"message": "Вхід успішний!", "user": {"id": user.id, "username": user.username, "role": user.role}})
-
+async def login(request: Request, credentials: UserCreate = Body(...)):
+    user = await mongo_db.users.find_one({"username": credentials.username})
+    if not user or not verify_password(credentials.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    # set session
+    request.session["user_id"] = str(user["_id"])
+    request.session["role"] = user.get("role", "user")
+    return JSONResponse({
+        "message": "Login successful",
+        "user": {"id": str(user["_id"]), "username": user["username"], "role": user.get("role", "user")}
+    })
 
 @router.post("/logout")
-def logout(request: Request):
+async def logout(request: Request):
     request.session.clear()
-    return JSONResponse({"message": "Вихід успішний!"})
+    return JSONResponse({"message": "Logout successful"})
 
+async def get_current_user(request: Request) -> dict:
 
-def get_current_user(request: Request, db: Session = Depends(get_db)):
     user_id = request.session.get("user_id")
     if not user_id:
-        raise HTTPException(status_code=401, detail="Неавторизований доступ")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
 
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Користувач не знайдений")
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user id in session"
+        )
 
-    return user
+    user_doc = await mongo_db.users.find_one(
+        {"_id": ObjectId(user_id)}
+    )
+    if not user_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
+    user_doc["_id"] = str(user_doc["_id"])
+    return user_doc
 
-@router.get("/me")
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
-    return {"id": current_user.id, "username": current_user.username, "role": current_user.role}
-
+@router.get("/me", response_model=UserOut)
+async def me(current_user: dict = Depends(get_current_user)):
+    return current_user
 
 @router.get("/profile")
-def register():
-    return FileResponse(Path("public") / "profile.html")
+async def profile():
+    return FileResponse("public/profile.html")
 
-
-@router.get("/{id}")
-def get_user(id: int, db: Session = Depends(get_db)):
-
-    user = db.query(User).filter(User.id == id).first()
-
-    if user==None:
-        return JSONResponse(status_code=404, content={ "message": "Користувач не знайдений"})
-
-    return user
+@router.get("/{id}", response_model=UserOut)
+async def get_user(id: str):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="Invalid ID")
+    user = await mongo_db.users.find_one({"_id": ObjectId(id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserOut(**user)

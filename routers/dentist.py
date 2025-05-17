@@ -1,60 +1,63 @@
-from models.models import *
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Body, Path
-from fastapi.responses import JSONResponse
-from models.database import get_db
-from typing import Annotated
+from fastapi import APIRouter, HTTPException, status, Body, Path
+from mongodb import mongo_db
+from schemas.schemas import DentistIn, DentistOut
+from bson import ObjectId
 
 router = APIRouter(prefix="/api/dentists", tags=["Dentists"])
 
-@router.get("/")
-def get_dentists(db: Session = Depends(get_db)):
-    return db.query(Dentist).all()
+def to_str_id(doc: dict) -> dict:
+    doc["_id"] = str(doc["_id"])
+    return doc
 
-@router.get("/{id}")
-def get_dentist(id: Annotated[int, Path(..., ge=1)], db: Session = Depends(get_db)):
-
-    dentist = db.query(Dentist).filter(Dentist.id == id).first()
-
-    if dentist==None:
-        return JSONResponse(status_code=404, content={ "message": "Користувач не знайдений"})
-
-    return dentist
+@router.post("/", response_model=DentistOut, status_code=status.HTTP_201_CREATED,)
+async def create_dentist(dentist: DentistIn = Body(...)):
+    data = dentist.dict(by_alias=True, exclude_none=True, exclude={"_id"})
+    result = await mongo_db.dentists.insert_one(data)
+    new_doc = await mongo_db.dentists.find_one({"_id": result.inserted_id})
+    return DentistOut(**to_str_id(new_doc))
 
 
-@router.post("/")
-def create_dentist(data = Body(), db: Session = Depends(get_db)):
-    dentist = Dentist(name=data["name"], age=data["age"], experience=data["experience"], phoneNumber=data["phoneNumber"])
-    db.add(dentist)
-    db.commit()
-    db.refresh(dentist)
-    return dentist
+@router.get("/", response_model=list[DentistOut])
+async def list_dentists():
+    cursor = mongo_db.dentists.find({})
+    return [DentistOut(**to_str_id(doc)) async for doc in cursor]
 
+@router.get("/{id}", response_model=DentistOut)
+async def get_dentist(id: str = Path(...)):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(400, "Invalid ID")
+    doc = await mongo_db.dentists.find_one({"_id": ObjectId(id)})
+    if not doc:
+        raise HTTPException(404, "Дантист не знайдений")
+    return DentistOut(**to_str_id(doc))
 
-@router.put("/")
-async def edit_dentist(data = Body(), db: Session = Depends(get_db)):
-    dentist = db.query(Dentist).filter(Dentist.id == data["id"]).first()
+@router.put("/{id}", response_model=DentistOut)
+async def update_dentist(
+    id: str = Path(..., title="Dentist ID"),
+    dentist: DentistIn = Body(...)
+):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(400, "Invalid ID")
 
-    if dentist == None:
-        return JSONResponse(status_code=404, content={ "message": "Користувач не знайдений"})
+    data = dentist.dict(exclude_unset=True, by_alias=True)
 
-    dentist.age = data["age"]
-    dentist.name = data["name"]
-    dentist.experience = data["experience"]
-    dentist.phoneNumber = data["phoneNumber"]
-    db.commit()
-    db.refresh(dentist)
-    return dentist
+    if not data:
+        raise HTTPException(400, "Нічого оновлювати")
 
+    result = await mongo_db.dentists.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "Дантист не знайдений")
 
-@router.delete("/")
-def delete_dentist(id, db: Session = Depends(get_db)):
+    updated = await mongo_db.dentists.find_one({"_id": ObjectId(id)})
+    return DentistOut(**to_str_id(updated))
 
-    dentist = db.query(Dentist).filter(Dentist.id == id).first()
-
-    if dentist == None:
-       return JSONResponse( status_code=404, content={ "message": "Користувач не знайдений"})
-
-    db.delete(dentist)
-    db.commit()
-    return dentist
+@router.delete("/{id}", status_code=204)
+async def delete_dentist(id: str = Path(...)):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(400, "Invalid ID")
+    result = await mongo_db.dentists.delete_one({"_id": ObjectId(id)})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Дантист не знайдений")

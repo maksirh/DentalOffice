@@ -1,59 +1,72 @@
-from models.models import *
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Body
-from fastapi.responses import JSONResponse
-from models.database import get_db
+from fastapi import APIRouter, HTTPException, status, Body, Path
+from mongodb import mongo_db
+from schemas.schemas import AppointmentModel
+from bson import ObjectId
 
 router = APIRouter(prefix="/api/appointments", tags=["Appointments"])
 
-@router.get("/")
-def get_appointments(db: Session = Depends(get_db)):
-    return db.query(Appointment).all()
+def to_str_id(doc: dict) -> dict:
+    doc["_id"] = str(doc["_id"])
+    return doc
 
+@router.post(
+    "/",
+    response_model=AppointmentModel,
+    status_code=status.HTTP_201_CREATED
+)
+async def create_appointment(appointment: AppointmentModel = Body(...)):
+    data = appointment.dict(by_alias=True, exclude={"id"})
+    result = await mongo_db.appointments.insert_one(data)
+    new_doc = await mongo_db.appointments.find_one({"_id": result.inserted_id})
+    return AppointmentModel(**new_doc)
 
-@router.get("/{id}")
-def get_appointment(id: int, db: Session = Depends(get_db)):
-    patient = db.query(Appointment).filter(Appointment.id == id).first()
-    if not patient:
-        return JSONResponse(status_code=404, content={"message": "Запис не знайдено"})
-    return patient
+@router.get(
+    "/",
+    response_model=list[AppointmentModel]
+)
+async def list_appointments():
+    cursor = mongo_db.appointments.find()
+    return [AppointmentModel(**to_str_id(doc)) async for doc in cursor]
 
+@router.get(
+    "/{id}",
+    response_model=AppointmentModel
+)
+async def get_appointment(id: str = Path(...)):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(status_code=400, detail="Invalid ID")
+    doc = await mongo_db.appointments.find_one({"_id": ObjectId(id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return AppointmentModel(**doc)
 
-@router.post("/")
-def create_appointment(data=Body(), db: Session = Depends(get_db)):
-    appointment = Appointment(
-        name=data["name"],
-        age=data["age"],
-        phoneNumber=data["phoneNumber"],
-        reason = data["reason"]
+@router.put(
+    "/{id}",
+    response_model=AppointmentModel
+)
+async def update_appointment(
+    id: str = Path(...),
+    appointment: AppointmentModel = Body(...)
+):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(400, "Invalid ID")
+    data = appointment.dict(by_alias=True, exclude={"id"})
+    result = await mongo_db.appointments.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": data}
     )
-    db.add(appointment)
-    db.commit()
-    db.refresh(appointment)
-    return appointment
+    if result.matched_count == 0:
+        raise HTTPException(404, "Appointment not found")
+    updated = await mongo_db.appointments.find_one({"_id": ObjectId(id)})
+    return AppointmentModel(**updated)
 
-
-@router.put("/")
-def update_appointment(data=Body(), db: Session = Depends(get_db)):
-    appointment = db.query(Appointment).filter(Appointment.id == data["id"]).first()
-    if not appointment:
-        return JSONResponse(status_code=404, content={"message": "Запис не знайдено"})
-
-    appointment.name = data["name"]
-    appointment.age = data["age"]
-    appointment.phoneNumber = data["phone"]
-
-    db.commit()
-    db.refresh(appointment)
-    return appointment
-
-
-@router.delete("/{id}")
-def delete_appointment(id: int, db: Session = Depends(get_db)):
-    appointment = db.query(Appointment).filter(Appointment.id == id).first()
-    if not appointment:
-        return JSONResponse(status_code=404, content={"message": "Запис не знайдено"})
-
-    db.delete(appointment)
-    db.commit()
-    return appointment
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_appointment(id: str = Path(...)):
+    if not ObjectId.is_valid(id):
+        raise HTTPException(400, "Invalid ID")
+    result = await mongo_db.appointments.delete_one({"_id": ObjectId(id)})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Appointment not found")

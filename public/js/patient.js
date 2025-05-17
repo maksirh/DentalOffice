@@ -19,7 +19,7 @@ async function getPatient(id) {
 
     if (response.ok) {
         const user = await response.json();
-        document.getElementById("patientId").value = user.id;
+        document.getElementById("patientId").value = user._id;
         document.getElementById("patientName").value = user.name;
         document.getElementById("patientAge").value = user.age;
         document.getElementById("patientPhone").value = user.phoneNumber;
@@ -29,51 +29,63 @@ async function getPatient(id) {
     }
 }
 
-async function createPatient(patientName, patientAge, patientPhone) {
-    const response = await fetch("/api/patients", {
-        method: "POST",
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: patientName,
-            age: parseInt(patientAge, 10),
-            phoneNumber: patientPhone
-        })
-    });
+async function createPatient() {
+  const patientName = document.getElementById("patientName").value.trim();
+  const ageRaw = document.getElementById("patientAge").value;
+  const patientPhone = document.getElementById("patientPhone").value.trim();
 
-    if (response.ok) {
-        const user = await response.json();
-        document.querySelector("tbody").append(row(user));
-    } else {
-        const error = await response.json();
-        console.log(error.message);
-    }
+  const age = Number(ageRaw);
+
+  const response = await fetch("/api/patients/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: patientName,
+      age,
+      phoneNumber: patientPhone
+    })
+  });
+
+  if (response.ok) {
+    const dentist = await response.json();
+    document.querySelector("tbody").append(row(dentist));
+  } else {
+    const { detail } = await response.json();
+    console.error(detail);
+    alert("Помилка: " + JSON.stringify(detail));
+  }
 }
 
-async function editPatient(patientId, patientName, patientAge, patientPhone) {
-    const response = await fetch("/api/patients", {
-        method: "PUT",
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            id: patientId,
-            name: patientName,
-            age: parseInt(patientAge, 10),
-            phoneNumber: patientPhone
-        })
-    });
+async function editDentist(id) {
+  const name  = document.getElementById("patientName").value.trim();
+  const age   = Number(document.getElementById("patientAge").value);
+  const exp   = Number(document.getElementById("patientExp").value);
+  const phone = document.getElementById("patientPhone").value.trim();
 
-    if (response.ok) {
-        const user = await response.json();
-        document.querySelector(`tr[data-rowid='${user.id}']`).replaceWith(row(user));
-    } else {
-        const error = await response.json();
-        console.log(error.message);
-    }
+  if (!name || Number.isNaN(age) || Number.isNaN(exp) || !phone) {
+    alert("Заповніть усі поля коректно!");
+    return;
+  }
+
+  // 2) Відправляємо PUT /api/dentists/{id}
+  const res = await fetch(`/api/patients/${id}`, {
+    method : "PUT",
+    headers: { "Content-Type": "application/json" },
+    body   : JSON.stringify({ name, age, phoneNumber: phone })
+  });
+
+  // 3) Обробляємо відповідь
+  if (res.ok) {
+    const updated = await res.json();
+    document.querySelector(`tr[data-rowid='${id}']`)
+            ?.replaceWith(row(updated));
+    reset();
+  } else {
+    let detail = "Unknown error";
+    try { ({ detail } = await res.json()); } catch(_) {}
+    console.error(detail);
+    alert("Не вдалося оновити: " + detail);
+  }
 }
 
 async function deletePatient(id) {
@@ -99,7 +111,7 @@ function reset() {
 
 function row(user) {
     const tr = document.createElement("tr");
-    tr.setAttribute("data-rowid", user.id);
+    tr.setAttribute("data-rowid", user._id);
 
     const nameTd = document.createElement("td");
     nameTd.append(user.name);
@@ -117,12 +129,12 @@ function row(user) {
 
     const editLink = document.createElement("button");
     editLink.append("Змінити");
-    editLink.addEventListener("click", async () => await getPatient(user.id));
+    editLink.addEventListener("click", async () => await getPatient(user._id));
     linksTd.append(editLink);
 
     const removeLink = document.createElement("button");
     removeLink.append("Видалити");
-    removeLink.addEventListener("click", async () => await deletePatient(user.id));
+    removeLink.addEventListener("click", async () => await deletePatient(user._id));
     linksTd.append(removeLink);
 
     tr.appendChild(linksTd);
@@ -138,7 +150,7 @@ document.getElementById("savePat").addEventListener("click", async () => {
     if (id === "")
         await createPatient(name, age, phoneNumber);
     else
-        await editPatient(id, name, age, phoneNumber);
+        await editPatient(id);
 
     reset();
 });

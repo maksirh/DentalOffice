@@ -9,8 +9,6 @@ from routers import dentist, patient, appointment, user, review
 import auth
 from security import require_role
 
-
-Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(dentist.router)
 app.include_router(patient.router)
